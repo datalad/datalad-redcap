@@ -15,13 +15,13 @@ command_suite = (
         # specification of a command, any number of commands can be defined
         (
             # importable module that contains the command implementation
-            'datalad_redcap.hello_cmd',
+            'datalad_redcap.export_form',
             # name of the command class implementation in above module
-            'HelloWorld',
+            'ExportForm',
             # optional name of the command in the cmdline API
-            'hello-cmd',
+            'export-redcap-form',
             # optional name of the command in the Python API
-            'hello_cmd'
+            'export_redcap_form'
         ),
     ]
 )

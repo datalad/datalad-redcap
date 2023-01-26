@@ -1,6 +1,7 @@
 # DataLad REDCap extension
 
-[![crippled-filesystems](https://github.com/datalad/datalad-extension-template/workflows/crippled-filesystems/badge.svg)](https://github.com/datalad/datalad-extension-template/actions?query=workflow%3Acrippled-filesystems) [![docs](https://github.com/datalad/datalad-extension-template/workflows/docs/badge.svg)](https://github.com/datalad/datalad-extension-template/actions?query=workflow%3Adocs)
+[![crippled-filesystems](https://github.com/datalad/datalad-redcap/workflows/crippled-filesystems/badge.svg)](https://github.com/datalad/datalad-redcap/actions/workflows/test_crippledfs.yml)
+[![docs](https://github.com/datalad/datalad-redcap/workflows/docs/badge.svg)](https://github.com/datalad/datalad-redcap/actions/workflows/docbuild.yml)
 
 This DataLad extension provides convenience commands for exporting data from REDCap into DataLad datasets.
 Information about the RedCAP project can be found at https://project-redcap.org/.

@@ -23,6 +23,12 @@ command_suite = (
             # optional name of the command in the Python API
             'export_redcap_form'
         ),
+        (
+            'datalad_redcap.query',
+            'Query',
+            'redcap-query',
+            'redcap_query'
+        )
     ]
 )
 

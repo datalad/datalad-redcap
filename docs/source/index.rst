@@ -16,6 +16,7 @@ High-level API commands
    :toctree: generated
 
    export_redcap_form
+   redcap_query
 
 
 Command line reference
@@ -25,6 +26,7 @@ Command line reference
    :maxdepth: 1
 
    generated/man/datalad-export-redcap-form
+   generated/man/datalad-redcap-query.rst
 
 
 Indices and tables

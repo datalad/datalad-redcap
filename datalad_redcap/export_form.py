@@ -1,10 +1,12 @@
 """Export one or multiple forms"""
 
 import os
+from pathlib import Path
 import textwrap
 from typing import (
     List,
     Optional,
+    Tuple,
     Union,
 )
 
@@ -93,17 +95,19 @@ class ExportForm(Interface):
 
         # work with a dataset, sort out paths
         ds = require_dataset(dataset)
-        ds_path = os.path.abspath(ds.path)
         res_outfile = resolve_path(outfile, ds=ds)
 
-        # refuse to operate if target file is outside the dataset
-        if not os.path.commonpath([ds.path, res_outfile]) == ds.path:
-            # 3.9 onwards: res_outfile.is_relative_to(ds.path)
+        # refuse to operate if target file is outside the dataset or not clean
+        ok_to_edit, unlock = _check_ok_to_edit(res_outfile, ds)
+        if not ok_to_edit:
             yield get_status_dict(
                 action="export_redcap_form",
                 path=outfile,
-                status="impossible",
-                message="Path not underneath the reference dataset",
+                status="error",
+                message=(
+                    "Output file status is not clean or it is not directly "
+                    "under the reference dataset."
+                ),
             )
             return
 
@@ -120,11 +124,9 @@ class ExportForm(Interface):
             forms=forms,
         )
 
-        # try to unlock file if already present
-        if os.path.lexists(res_outfile):
+        # unlock the file if needed, and write contents
+        if unlock:
             ds.unlock(res_outfile)
-
-        # overwrite file with obtained contents
         with open(res_outfile, "wt") as f:
             f.write(response)
 
@@ -143,6 +145,38 @@ class ExportForm(Interface):
             path=outfile,
             status="ok",
         )
+
+
+def _check_ok_to_edit(filepath: Path, ds: Dataset) -> Tuple[bool, bool]:
+    """Check if it's ok to write to a file, and if it needs unlocking
+
+    Only allows paths that are within the given dataset (not outside, not in
+    a subdatset) and lead either to existing clean files or nonexisting files.
+    Uses ds.repo.status.
+    """
+    try:
+        st = ds.repo.status(paths=[filepath])
+    except ValueError:
+        # path outside the dataset
+        return False, False
+
+    if st == {}:
+        # path is fine, file doesn't exist
+        ok_to_edit = True
+        unlock = False
+    else:
+        st_fp = st[filepath]  # need to unpack
+        if st_fp["type"] == "file" and st_fp["state"] == "clean":
+            ok_to_edit = True
+            unlock = False
+        elif st_fp["type"] == "symlink" and st_fp["state"] == "clean":
+            ok_to_edit = True
+            unlock = True
+        else:
+            # note: paths pointing into subdatasets have type=dataset
+            ok_to_edit = False
+            unlock = False
+    return ok_to_edit, unlock
 
 
 def _write_commit_message(which_forms: List[str]) -> str:

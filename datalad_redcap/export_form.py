@@ -74,6 +74,12 @@ class ExportForm(Interface):
             based on the working directory.""",
             constraints=EnsureDataset() | EnsureNone(),
         ),
+        survey_fields=Parameter(
+            args=("--no-survey-fields",),
+            dest="survey_fields",
+            action="store_false",
+            doc="Do not include survey identifier or survey timestamp fields",
+        ),
         message=save_message_opt,
         save=nosave_opt,
     )
@@ -86,6 +92,7 @@ class ExportForm(Interface):
         forms: List[str],
         outfile: str,
         dataset: Optional[Union[Dataset, str]] = None,
+        survey_fields: bool = True,
         message: Optional[str] = None,
         save: bool = True,
     ):
@@ -122,6 +129,7 @@ class ExportForm(Interface):
         response = api.export_records(
             format_type="csv",
             forms=forms,
+            export_survey_fields=survey_fields,
         )
 
         # unlock the file if needed, and write contents

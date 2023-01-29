@@ -35,8 +35,9 @@ from datalad.support.constraints import (
     EnsureStr,
 )
 from datalad.support.param import Parameter
-from datalad_next.exceptions import CapturedException
 from datalad_next.utils import CredentialManager
+
+from .utils import update_credentials
 
 __docformat__ = "restructuredtext"
 lgr = logging.getLogger('datalad.redcap.export_form')
@@ -157,7 +158,7 @@ class ExportForm(Interface):
         )
 
         # query went well, store or update credentials
-        _update_credentials(credman, credname, credprops)
+        update_credentials(credman, credname, credprops)
 
         # unlock the file if needed, and write contents
         if unlock:
@@ -220,35 +221,3 @@ def _write_commit_message(which_forms: List[str]) -> str:
     header = "Export RedCap forms"
     body = "\n".join(textwrap.wrap(f"Contains the following forms: {forms}."))
     return header + "\n\n" + body
-
-
-def _update_credentials(
-        credman: CredentialManager, credname: Optional[str], credprops: dict
-) -> None:
-    """Update credentials, generating default name if needed"""
-    if credname is None:
-        # no name given upfront, and none found - create default
-        credname = "{kind}{delim}{realm}".format(
-            kind="redcap",
-            delim="-" if "realm" in credprops else "",
-            realm=credprops.get("realm", ""),
-        )
-        # do not override if the name is already in use
-        if credman.get(name=credname) is not None:
-            lgr.warning(
-                "The entered credential will not be stored, "
-                "a credential with the default name %r already exists.",
-                credname,
-            )
-            return
-    try:
-        # save a new credential or update last used date
-        credman.set(credname, _lastused=True, **credprops)
-    except Exception as e:
-        # deescalate errors from credential storage
-        lgr.warn(
-            "Exception raised when storing credential %r %r: %s",
-            credname,
-            credprops,
-            CapturedException(e),
-        )

@@ -1,6 +1,7 @@
 """Query REDCap's API for exportable items"""
 
 import os
+from typing import Optional
 
 from prettytable import PrettyTable
 from redcap.methods.instruments import Instruments
@@ -17,6 +18,9 @@ from datalad.support.constraints import (
 )
 from datalad.support.param import Parameter
 from datalad.ui import ui
+from datalad_next.utils import CredentialManager
+
+from .utils import update_credentials
 
 
 class MyInstruments(Instruments):
@@ -69,22 +73,45 @@ class Query(Interface):
             doc="API URL to a REDCap server",
             constraints=EnsureStr(),
         ),
+        credential=Parameter(
+            args=("--credential",),
+            metavar="name",
+            doc="""name of the credential providing a token to be used for
+            authorization. If a match for the name is found, it will
+            be used; otherwise the user will be prompted and the
+            credential will be saved. If the name is not provided, the
+            last-used credential matching the API url will be used if
+            present; otherwise the user will be prompted and the
+            credential will be saved under a default name.""",
+        ),
     )
 
     @staticmethod
     @eval_results
-    def __call__(url: str):
+    def __call__(url: str, credential: Optional[str] = None):
 
-        # temporary solution: read token from env until we add authentication
-        token = os.getenv("REDCAP_TOKEN")
+        # determine the token
+        credman = CredentialManager()
+        credname, credprops = credman.obtain(
+            name=credential,
+            prompt="Token for the REDCap project API",
+            type_hint="token",
+            query_props={"realm": url},
+            expected_props=("secret",),
+        )
 
-        api = MyInstruments(url=url, token=token)
+        # perform api query
+        api = MyInstruments(url=url, token=credprops["secret"])
+        instruments = api.export_instruments()
+
+        # query went well, store or update credentials
+        update_credentials(credman, credname, credprops)
 
         yield get_status_dict(
             action="redcap_query",
             path=os.getcwd(),
             status="ok",
-            instruments=api.export_instruments(),
+            instruments=instruments,
         )
 
     @staticmethod

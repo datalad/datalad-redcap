@@ -40,7 +40,7 @@ from datalad_next.utils import CredentialManager
 from .utils import update_credentials
 
 __docformat__ = "restructuredtext"
-lgr = logging.getLogger('datalad.redcap.export_form')
+lgr = logging.getLogger("datalad.redcap.export_form")
 
 
 @build_doc
@@ -137,9 +137,9 @@ class ExportForm(Interface):
         credname, credprops = credman.obtain(
             name=credential,
             prompt="Token for the REDCap project API",
-            type_hint = "token",
-            query_props = {"realm": url},
-            expected_props = ("secret",),
+            type_hint="token",
+            query_props={"realm": url},
+            expected_props=("secret",),
         )
 
         # create an api object

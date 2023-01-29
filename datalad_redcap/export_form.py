@@ -1,5 +1,6 @@
 """Export one or multiple forms"""
 
+import logging
 import os
 from pathlib import Path
 import textwrap
@@ -34,8 +35,11 @@ from datalad.support.constraints import (
     EnsureStr,
 )
 from datalad.support.param import Parameter
+from datalad_next.exceptions import CapturedException
+from datalad_next.utils import CredentialManager
 
 __docformat__ = "restructuredtext"
+lgr = logging.getLogger('datalad.redcap.export_form')
 
 
 @build_doc
@@ -80,6 +84,17 @@ class ExportForm(Interface):
             action="store_false",
             doc="Do not include survey identifier or survey timestamp fields",
         ),
+        credential=Parameter(
+            args=("--credential",),
+            metavar="name",
+            doc="""name of the credential providing a token to be used for
+            authorization. If a match for the name is found, it will
+            be used; otherwise the user will be prompted and the
+            credential will be saved. If the name is not provided, the
+            last-used credential matching the API url will be used if
+            present; otherwise the user will be prompted and the
+            credential will be saved under a default name.""",
+        ),
         message=save_message_opt,
         save=nosave_opt,
     )
@@ -93,12 +108,10 @@ class ExportForm(Interface):
         outfile: str,
         dataset: Optional[Union[Dataset, str]] = None,
         survey_fields: bool = True,
+        credential: Optional[str] = None,
         message: Optional[str] = None,
         save: bool = True,
     ):
-
-        # temporary solution: read token from env until we add authentication
-        token = os.getenv("REDCAP_TOKEN")
 
         # work with a dataset, sort out paths
         ds = require_dataset(dataset)
@@ -118,19 +131,33 @@ class ExportForm(Interface):
             )
             return
 
+        # determine a token
+        credman = CredentialManager(ds.config)
+        credname, credprops = credman.obtain(
+            name=credential,
+            prompt="Token for the REDCap project API",
+            type_hint = "token",
+            query_props = {"realm": url},
+            expected_props = ("secret",),
+        )
+
         # create an api object
         api = Records(
             url=url,
-            token=token,
+            token=credprops["secret"],
         )
 
         # perform the api query
-        # outputs a string if format is csv, errors for an incorrect query
+        # for csv format, outpus result as string
+        # raises RedcapError if token or form name are incorrect
         response = api.export_records(
             format_type="csv",
             forms=forms,
             export_survey_fields=survey_fields,
         )
+
+        # query went well, store or update credentials
+        _update_credentials(credman, credname, credprops)
 
         # unlock the file if needed, and write contents
         if unlock:
@@ -193,3 +220,35 @@ def _write_commit_message(which_forms: List[str]) -> str:
     header = "Export RedCap forms"
     body = "\n".join(textwrap.wrap(f"Contains the following forms: {forms}."))
     return header + "\n\n" + body
+
+
+def _update_credentials(
+        credman: CredentialManager, credname: Optional[str], credprops: dict
+) -> None:
+    """Update credentials, generating default name if needed"""
+    if credname is None:
+        # no name given upfront, and none found - create default
+        credname = "{kind}{delim}{realm}".format(
+            kind="redcap",
+            delim="-" if "realm" in credprops else "",
+            realm=credprops.get("realm", ""),
+        )
+        # do not override if the name is already in use
+        if credman.get(name=credname) is not None:
+            lgr.warning(
+                "The entered credential will not be stored, "
+                "a credential with the default name %r already exists.",
+                credname,
+            )
+            return
+    try:
+        # save a new credential or update last used date
+        credman.set(credname, _lastused=True, **credprops)
+    except Exception as e:
+        # deescalate errors from credential storage
+        lgr.warn(
+            "Exception raised when storing credential %r %r: %s",
+            credname,
+            credprops,
+            CapturedException(e),
+        )

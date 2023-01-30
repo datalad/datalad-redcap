@@ -1,9 +1,9 @@
-DataLad extension template
-**************************
+DataLad REDCap extension
+************************
 
-This is a template for creating a `DataLad <http://datalad.org>`__ extension
-that equips DataLad with additional functionality.
-
+This DataLad extension provides convenience commands for exporting
+data from REDCap into DataLad datasets. Information about the RedCAP
+project can be found at https://project-redcap.org/.
 
 API
 ===

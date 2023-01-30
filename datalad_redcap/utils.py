@@ -12,30 +12,23 @@ lgr = logging.getLogger("datalad.redcap.utils")
 def update_credentials(
     credman: CredentialManager, credname: Optional[str], credprops: dict
 ) -> None:
-    """Update credentials, generating default name if needed"""
-    if credname is None:
-        # no name given upfront, and none found - create default
-        credname = "{kind}{delim}{realm}".format(
-            kind="redcap",
-            delim="-" if "realm" in credprops else "",
-            realm=credprops.get("realm", ""),
-        )
-        # do not override if the name is already in use
-        if credman.get(name=credname) is not None:
-            lgr.warning(
-                "The entered credential will not be stored, "
-                "a credential with the default name %r already exists.",
-                credname,
-            )
-            return
+    """Update credentials, prompting for name if needed
+
+    Saves a new credential or just updates last used date. Uses
+    CredentialManager.set(), deescalating errors to warnings. Suggests
+    "redcap-<api url>" as default name.
+    """
     try:
-        # save a new credential or update last used date
-        credman.set(credname, _lastused=True, **credprops)
-    except Exception as e:
-        # deescalate errors from credential storage
-        lgr.warn(
-            "Exception raised when storing credential %r %r: %s",
-            credname,
-            credprops,
-            CapturedException(e),
+        credman.set(
+            name=credname,
+            _lastused=True,
+            _suggested_name="redcap{delim}{realm}".format(
+                delim="-" if "realm" in credprops else "",
+                realm=credprops.get("realm", ""),
+            ),
+            _context="for REDCap API access",
+            **credprops,
         )
+    except Exception as e:
+        msg = ("Exception raised when storing credential %r %r: %s",)
+        lgr.warn(msg, credname, credprops, CapturedException(e))

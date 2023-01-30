@@ -94,7 +94,7 @@ class Query(Interface):
         credman = CredentialManager()
         credname, credprops = credman.obtain(
             name=credential,
-            prompt="Token for the REDCap project API",
+            prompt="A token is required to access the REDCap project API",
             type_hint="token",
             query_props={"realm": url},
             expected_props=("secret",),

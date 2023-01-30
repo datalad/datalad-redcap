@@ -10,13 +10,13 @@ The extension is in early development.
 
 ## Commands
 - `export-redcap-form`: Export records from selected forms (instruments)
+- `redcap-query`: Show names of available forms (instruments)
 
 ## Usage examples
-Credential management is not yet supported, and the API token will be read from the environment variable.
-The example below will export a given form from REDCap in csv format and save the file in a DataLad dataset.
+The example below will show available forms, export a given form from REDCap in csv format, and save the file in a DataLad dataset.
 ```
-export REDCAP_TOKEN=<token>
 datalad create my-exports
 cd my-exports
-datalad export-redcap-form <api url> <form label> exported.csv
+datalad redcap-query <api url>
+datalad export-redcap-form <api url> <form name> exported.csv
 ```

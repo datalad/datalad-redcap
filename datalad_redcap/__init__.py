@@ -24,6 +24,12 @@ command_suite = (
             'export_redcap_form'
         ),
         (
+            'datalad_redcap.export_report',
+            'ExportReport',
+            'export-redcap-report',
+            'export_redcap_report'
+        ),
+        (
             'datalad_redcap.query',
             'Query',
             'redcap-query',

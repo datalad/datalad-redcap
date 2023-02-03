@@ -37,7 +37,10 @@ from datalad.support.constraints import (
 from datalad.support.param import Parameter
 from datalad_next.utils import CredentialManager
 
-from .utils import update_credentials
+from .utils import (
+    update_credentials,
+    check_ok_to_edit,
+)
 
 __docformat__ = "restructuredtext"
 lgr = logging.getLogger("datalad.redcap.export_form")
@@ -119,7 +122,7 @@ class ExportForm(Interface):
         res_outfile = resolve_path(outfile, ds=ds)
 
         # refuse to operate if target file is outside the dataset or not clean
-        ok_to_edit, unlock = _check_ok_to_edit(res_outfile, ds)
+        ok_to_edit, unlock = check_ok_to_edit(res_outfile, ds)
         if not ok_to_edit:
             yield get_status_dict(
                 action="export_redcap_form",
@@ -181,38 +184,6 @@ class ExportForm(Interface):
             path=outfile,
             status="ok",
         )
-
-
-def _check_ok_to_edit(filepath: Path, ds: Dataset) -> Tuple[bool, bool]:
-    """Check if it's ok to write to a file, and if it needs unlocking
-
-    Only allows paths that are within the given dataset (not outside, not in
-    a subdatset) and lead either to existing clean files or nonexisting files.
-    Uses ds.repo.status.
-    """
-    try:
-        st = ds.repo.status(paths=[filepath])
-    except ValueError:
-        # path outside the dataset
-        return False, False
-
-    if st == {}:
-        # path is fine, file doesn't exist
-        ok_to_edit = True
-        unlock = False
-    else:
-        st_fp = st[filepath]  # need to unpack
-        if st_fp["type"] == "file" and st_fp["state"] == "clean":
-            ok_to_edit = True
-            unlock = False
-        elif st_fp["type"] == "symlink" and st_fp["state"] == "clean":
-            ok_to_edit = True
-            unlock = True
-        else:
-            # note: paths pointing into subdatasets have type=dataset
-            ok_to_edit = False
-            unlock = False
-    return ok_to_edit, unlock
 
 
 def _write_commit_message(which_forms: List[str]) -> str:

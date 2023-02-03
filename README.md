@@ -10,6 +10,7 @@ The extension is in early development.
 
 ## Commands
 - `export-redcap-form`: Export records from selected forms (instruments)
+- `export-redcap-report`: Export a report that was defined in a project
 - `redcap-query`: Show names of available forms (instruments)
 
 ## Usage examples

@@ -6,18 +6,19 @@ from typing import Optional
 from prettytable import PrettyTable
 from redcap.methods.instruments import Instruments
 
-from datalad.interface.base import (
-    Interface,
-    build_doc,
-)
-from datalad.interface.results import get_status_dict
-from datalad.interface.utils import eval_results
-from datalad.support.constraints import (
-    EnsureStr,
-    EnsureChoice,
-)
-from datalad.support.param import Parameter
 from datalad.ui import ui
+from datalad_next.commands import (
+    EnsureCommandParameterization,
+    Parameter,
+    ValidatedInterface,
+    build_doc,
+    eval_results,
+    get_status_dict,
+)
+from datalad_next.constraints import (
+    EnsureStr,
+    EnsureURL,
+)
 from datalad_next.utils import CredentialManager
 
 from .utils import update_credentials
@@ -54,7 +55,7 @@ class MyInstruments(Instruments):
 
 
 @build_doc
-class Query(Interface):
+class Query(ValidatedInterface):
     """Query REDCap's API for available instruments (data entry forms)
 
     Can be used to retrieve human-oriented labels and API-oriented names of
@@ -71,7 +72,6 @@ class Query(Interface):
         url=Parameter(
             args=("url",),
             doc="API URL to a REDCap server",
-            constraints=EnsureStr(),
         ),
         credential=Parameter(
             args=("--credential",),
@@ -83,6 +83,13 @@ class Query(Interface):
             last-used credential matching the API url will be used if
             present; otherwise the user will be prompted and the
             credential will be saved under a default name.""",
+        ),
+    )
+
+    _validator_ = EnsureCommandParameterization(
+        dict(
+            url=EnsureURL(required=["scheme", "netloc", "path"]),
+            credential=EnsureStr(),
         ),
     )
 

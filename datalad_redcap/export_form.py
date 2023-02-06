@@ -1,40 +1,45 @@
 """Export one or multiple forms"""
 
 import logging
-import os
 from pathlib import Path
 import textwrap
 from typing import (
     List,
     Optional,
     Tuple,
-    Union,
 )
 
 from redcap.methods.records import Records
 
 from datalad.distribution.dataset import (
     Dataset,
-    EnsureDataset,
-    datasetmethod,
     require_dataset,
     resolve_path,
-)
-from datalad.interface.base import (
-    Interface,
-    build_doc,
 )
 from datalad.interface.common_opts import (
     nosave_opt,
     save_message_opt,
 )
-from datalad.interface.results import get_status_dict
-from datalad.interface.utils import eval_results
-from datalad.support.constraints import (
-    EnsureNone,
-    EnsureStr,
+from datalad_next.commands import (
+    EnsureCommandParameterization,
+    Parameter,
+    ValidatedInterface,
+    build_doc,
+    datasetmethod,
+    eval_results,
+    get_status_dict,
 )
-from datalad.support.param import Parameter
+from datalad_next.constraints import (
+    EnsureBool,
+    EnsureListOf,
+    EnsurePath,
+    EnsureStr,
+    EnsureURL,
+)
+from datalad_next.constraints.dataset import (
+    DatasetParameter,
+    EnsureDataset,
+)
 from datalad_next.utils import CredentialManager
 
 from .utils import update_credentials
@@ -44,7 +49,7 @@ lgr = logging.getLogger("datalad.redcap.export_form")
 
 
 @build_doc
-class ExportForm(Interface):
+class ExportForm(ValidatedInterface):
     """Export records from selected forms (instruments)
 
     This is an equivalent to "Selected Instruments" export option in
@@ -56,19 +61,16 @@ class ExportForm(Interface):
         url=Parameter(
             args=("url",),
             doc="API URL to a REDCap server",
-            constraints=EnsureStr(),
         ),
         forms=Parameter(
             args=("forms",),
             doc="project form name(s)",
-            constraints=EnsureStr(),
             nargs="+",
             metavar="form",
         ),
         outfile=Parameter(
             args=("outfile",),
             doc="file to write. Existing files will be overwritten.",
-            constraints=EnsureStr(),
         ),
         dataset=Parameter(
             args=("-d", "--dataset"),
@@ -77,7 +79,6 @@ class ExportForm(Interface):
             The `outfile` argument will be interpreted as being relative to
             this dataset.  If no dataset is given, it will be identified
             based on the working directory.""",
-            constraints=EnsureDataset() | EnsureNone(),
         ),
         survey_fields=Parameter(
             args=("--no-survey-fields",),
@@ -100,22 +101,41 @@ class ExportForm(Interface):
         save=nosave_opt,
     )
 
+    _validator_ = EnsureCommandParameterization(
+        dict(
+            url=EnsureURL(required=["scheme", "netloc", "path"]),
+            forms=EnsureListOf(str),
+            outfile=EnsurePath(),
+            dataset=EnsureDataset(installed=True, purpose="export REDCap form"),
+            survey_fields=EnsureBool(),
+            credential=EnsureStr(),
+            message=EnsureStr(),
+            save=EnsureBool(),
+        ),
+    )
+
     @staticmethod
     @datasetmethod(name="export_redcap_form")
     @eval_results
     def __call__(
         url: str,
         forms: List[str],
-        outfile: str,
-        dataset: Optional[Union[Dataset, str]] = None,
+        outfile: Path,
+        dataset: Optional[DatasetParameter] = None,
         survey_fields: bool = True,
         credential: Optional[str] = None,
         message: Optional[str] = None,
         save: bool = True,
     ):
 
-        # work with a dataset, sort out paths
-        ds = require_dataset(dataset)
+        # work with a dataset object
+        if dataset is None:
+            # https://github.com/datalad/datalad-next/issues/225
+            ds = require_dataset(None)
+        else:
+            ds = dataset.ds
+
+        # Sort out the path in context of the dataset
         res_outfile = resolve_path(outfile, ds=ds)
 
         # refuse to operate if target file is outside the dataset or not clean

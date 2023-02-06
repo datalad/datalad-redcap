@@ -24,6 +24,13 @@ command_suite = (
             'export_redcap_form'
         ),
         (
+            'datalad_redcap.export_project_xml',
+            'ExportProjectXML',
+            'export-redcap-project-xml',
+            'export_redcap_project_xml'
+        ),
+
+        (
             'datalad_redcap.export_report',
             'ExportReport',
             'export-redcap-report',

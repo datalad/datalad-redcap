@@ -1,18 +1,9 @@
-"""Export one or multiple forms"""
-
-import logging
 from pathlib import Path
-import textwrap
-from typing import (
-    List,
-    Optional,
-    Tuple,
-)
+from typing import Optional
 
-from redcap.methods.records import Records
+from redcap.methods.reports import Reports
 
 from datalad.distribution.dataset import (
-    Dataset,
     require_dataset,
     resolve_path,
 )
@@ -20,10 +11,11 @@ from datalad.interface.common_opts import (
     nosave_opt,
     save_message_opt,
 )
+
 from datalad_next.commands import (
     EnsureCommandParameterization,
-    Parameter,
     ValidatedInterface,
+    Parameter,
     build_doc,
     datasetmethod,
     eval_results,
@@ -31,7 +23,6 @@ from datalad_next.commands import (
 )
 from datalad_next.constraints import (
     EnsureBool,
-    EnsureListOf,
     EnsurePath,
     EnsureStr,
     EnsureURL,
@@ -47,17 +38,16 @@ from .utils import (
     check_ok_to_edit,
 )
 
-__docformat__ = "restructuredtext"
-lgr = logging.getLogger("datalad.redcap.export_form")
-
 
 @build_doc
-class ExportForm(ValidatedInterface):
-    """Export records from selected forms (instruments)
+class ExportReport(ValidatedInterface):
+    """Export a report of the Project
 
-    This is an equivalent to "Selected Instruments" export option in
-    REDCap's interface.  Allows saving response data from one or
-    several forms into a single csv file.
+    This is an equivalent to exporting a custom report via the "My
+    Reports & Exports" page in REDCap's interface. A report must be
+    defined through the REDCap's interface, and the user needs to look
+    up its auto-generated report ID.
+
     """
 
     _params_ = dict(
@@ -65,11 +55,11 @@ class ExportForm(ValidatedInterface):
             args=("url",),
             doc="API URL to a REDCap server",
         ),
-        forms=Parameter(
-            args=("forms",),
-            doc="project form name(s)",
-            nargs="+",
-            metavar="form",
+        report=Parameter(
+            args=("report",),
+            doc="""the report ID number, provided next to the report name
+            on the report list page in REDCap UI""",
+            metavar="report_id",
         ),
         outfile=Parameter(
             args=("outfile",),
@@ -82,12 +72,6 @@ class ExportForm(ValidatedInterface):
             The `outfile` argument will be interpreted as being relative to
             this dataset.  If no dataset is given, it will be identified
             based on the working directory.""",
-        ),
-        survey_fields=Parameter(
-            args=("--no-survey-fields",),
-            dest="survey_fields",
-            action="store_false",
-            doc="Do not include survey identifier or survey timestamp fields",
         ),
         credential=Parameter(
             args=("--credential",),
@@ -107,25 +91,23 @@ class ExportForm(ValidatedInterface):
     _validator_ = EnsureCommandParameterization(
         dict(
             url=EnsureURL(required=["scheme", "netloc", "path"]),
-            forms=EnsureListOf(str),
+            report=EnsureStr(),
             outfile=EnsurePath(),
-            dataset=EnsureDataset(installed=True, purpose="export REDCap form"),
-            survey_fields=EnsureBool(),
+            dataset=EnsureDataset(installed=True, purpose="export redcap report"),
             credential=EnsureStr(),
             message=EnsureStr(),
             save=EnsureBool(),
-        ),
+        )
     )
 
     @staticmethod
-    @datasetmethod(name="export_redcap_form")
+    @datasetmethod(name="export_redcap_report")
     @eval_results
     def __call__(
         url: str,
-        forms: List[str],
+        report: str,
         outfile: Path,
         dataset: Optional[DatasetParameter] = None,
-        survey_fields: bool = True,
         credential: Optional[str] = None,
         message: Optional[str] = None,
         save: bool = True,
@@ -138,19 +120,19 @@ class ExportForm(ValidatedInterface):
         else:
             ds = dataset.ds
 
-        # Sort out the path in context of the dataset
+        # sort out the path in context of the dataset
         res_outfile = resolve_path(outfile, ds=ds)
 
         # refuse to operate if target file is outside the dataset or not clean
         ok_to_edit, unlock = check_ok_to_edit(res_outfile, ds)
         if not ok_to_edit:
             yield get_status_dict(
-                action="export_redcap_form",
-                path=outfile,
+                action="export_redcap_report",
+                path=res_outfile,
                 status="error",
                 message=(
-                    "Output file status is not clean or it is not directly "
-                    "under the reference dataset."
+                    "Output file status is not clean or the file does not "
+                    "belong directly to the reference dataset."
                 ),
             )
             return
@@ -166,18 +148,15 @@ class ExportForm(ValidatedInterface):
         )
 
         # create an api object
-        api = Records(
+        api = Reports(
             url=url,
             token=credprops["secret"],
         )
 
         # perform the api query
-        # for csv format, outpus result as string
-        # raises RedcapError if token or form name are incorrect
-        response = api.export_records(
+        response = api.export_report(
+            report_id=report,
             format_type="csv",
-            forms=forms,
-            export_survey_fields=survey_fields,
         )
 
         # query went well, store or update credentials
@@ -192,23 +171,13 @@ class ExportForm(ValidatedInterface):
         # save changes in the dataset
         if save:
             ds.save(
-                message=message
-                if message is not None
-                else _write_commit_message(forms),
+                message=message if message is not None else "Export REDCap report",
                 path=res_outfile,
             )
 
         # yield successful result if we made it to here
         yield get_status_dict(
-            action="export_redcap_form",
-            path=outfile,
+            action="export_redcap_report",
+            path=res_outfile,
             status="ok",
         )
-
-
-def _write_commit_message(which_forms: List[str]) -> str:
-    """Return a formatted commit message that includes form names"""
-    forms = ", ".join(which_forms)
-    header = "Export RedCap forms"
-    body = "\n".join(textwrap.wrap(f"Contains the following forms: {forms}."))
-    return header + "\n\n" + body

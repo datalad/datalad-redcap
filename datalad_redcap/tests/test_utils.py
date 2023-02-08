@@ -5,6 +5,7 @@ from datalad_next.tests.utils import with_tempfile
 
 from datalad_redcap.utils import check_ok_to_edit
 
+
 @with_tempfile
 def test_check_ok_to_edit(path=None):
     """Tests whether location/state is correctly recognized"""

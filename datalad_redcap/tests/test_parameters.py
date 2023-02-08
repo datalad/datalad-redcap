@@ -19,14 +19,14 @@ from datalad_next.tests.utils import (
 )
 from datalad_next.utils import chpwd
 
-TEST_TOKEN = "WTJ3G8XWO9G8V1BB4K8N81KNGRPFJOVL"  # needed to pass length assertion
+DUMMY_TOKEN = "WTJ3G8XWO9G8V1BB4K8N81KNGRPFJOVL"  # needed to pass length assertion
 CSV_CONTENT = "foo,bar,baz\nspam,spam,spam"
 CREDNAME = "redcap"
 
 
 @with_tempfile
 @patch("datalad_redcap.export_form.Records.export_records", return_value=CSV_CONTENT)
-@with_credential(CREDNAME, type="token", secret=TEST_TOKEN)
+@with_credential(CREDNAME, type="token", secret=DUMMY_TOKEN)
 def test_url_rejected(ds_path=None, mocker=None):
     """Test that bad-form urls are rejected by validation"""
     ds = Dataset(ds_path).create(result_renderer="disabled")
@@ -41,7 +41,7 @@ def test_url_rejected(ds_path=None, mocker=None):
 
 
 @with_tempfile
-@with_credential(CREDNAME, type="token", secret=TEST_TOKEN)
+@with_credential(CREDNAME, type="token", secret=DUMMY_TOKEN)
 @patch("datalad_redcap.export_form.Records.export_records", return_value=CSV_CONTENT)
 def test_dataset_not_found(path=None, mocker=None):
     """Test that nonexistent dataset is rejected by validation"""

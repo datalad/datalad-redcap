@@ -57,7 +57,8 @@ def check_ok_to_edit(filepath: Path, ds: Dataset) -> Tuple[bool, bool]:
         ok_to_edit = True
         unlock = False
     else:
-        st_fp = st[filepath]  # need to unpack
+        assert len(st) == 1
+        st_fp = next(iter(st.values()))
         if st_fp["type"] == "file" and st_fp["state"] == "clean":
             ok_to_edit = True
             unlock = False

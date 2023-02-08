@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import(
+from typing import (
     Optional,
     Tuple,
 )

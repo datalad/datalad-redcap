@@ -1,13 +1,28 @@
 # DataLad REDCap extension
 
-[![crippled-filesystems](https://github.com/datalad/datalad-redcap/workflows/crippled-filesystems/badge.svg)](https://github.com/datalad/datalad-redcap/actions/workflows/test_crippledfs.yml)
 [![docs](https://github.com/datalad/datalad-redcap/workflows/docs/badge.svg)](https://github.com/datalad/datalad-redcap/actions/workflows/docbuild.yml)
+
+[![crippled-filesystems](https://github.com/datalad/datalad-redcap/workflows/crippled-filesystems/badge.svg)](https://github.com/datalad/datalad-redcap/actions/workflows/test_crippledfs.yml)
 [![Documentation Status](https://readthedocs.org/projects/datalad-redcap/badge/?version=latest)](http://docs.datalad.org/projects/redcap/en/latest/?badge=latest)
 
 This DataLad extension provides convenience commands for exporting data from REDCap into DataLad datasets.
 Information about the RedCAP project can be found at https://project-redcap.org/.
 
 The extension is in early development.
+
+## Installation
+The extension has no official release yet, but you can install the *bleeding edge* version using pip, directly from GitHub.
+This will also install the latest development version of [DataLad Next](https://github.com/datalad/datalad-next) extension.
+Using a virtual environment is recommended.
+Example installation:
+
+```
+# create and enter a new virtual environment (optional)
+$ virtualenv --python=python3 ~/env/dl-redcap
+$ source ~/env/dl-redcap/bin/activate
+# install from GitHub main branch
+$ python -m pip install git+https://github.com/datalad/datalad-redcap.git@main
+```
 
 ## Commands
 - `export-redcap-form`: Export records from selected forms (instruments)

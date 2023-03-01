@@ -26,6 +26,7 @@ $ python -m pip install git+https://github.com/datalad/datalad-redcap.git@main
 
 ## Commands
 - `export-redcap-form`: Export records from selected forms (instruments)
+- `export-redcap-project-xml`: Export entire project as a REDCap XML File
 - `export-redcap-report`: Export a report that was defined in a project
 - `redcap-query`: Show names of available forms (instruments)
 

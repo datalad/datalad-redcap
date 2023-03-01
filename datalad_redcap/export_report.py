@@ -47,7 +47,6 @@ class ExportReport(ValidatedInterface):
     Reports & Exports" page in REDCap's interface. A report must be
     defined through the REDCap's interface, and the user needs to look
     up its auto-generated report ID.
-
     """
 
     _params_ = dict(
@@ -58,7 +57,7 @@ class ExportReport(ValidatedInterface):
         report=Parameter(
             args=("report",),
             doc="""the report ID number, provided next to the report name
-            on the report list page in REDCap UI""",
+            on the report list page in REDCap UI.""",
             metavar="report_id",
         ),
         outfile=Parameter(

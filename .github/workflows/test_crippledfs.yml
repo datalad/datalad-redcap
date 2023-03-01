@@ -32,14 +32,10 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: 3.8
-    - name: Install dependencies
-      run: |
-        pip install -r requirements-devel.txt
-        python -m pip install --upgrade pip
     - name: Installation
       run: |
-        # package install
-        python -m pip install .
+        python -m pip install --upgrade pip
+        python -m pip install .[devel]
     - name: Run tests
       env:
         # forces all test repos/paths into the VFAT FS

@@ -26,7 +26,7 @@ Although queries could be executed just with the built-in requests
 library (REDCap provides an API playground which can help generate
 request-based queries), PyCap provides useful assertions (e.g for
 token length), error handling with meaningful messages (e.g. raising
-`RedcapError` for incorrect query or denied access), and convenience
+``RedcapError`` for incorrect query or denied access), and convenience
 enhancements (adding ID column to form exports).
 
 Code style

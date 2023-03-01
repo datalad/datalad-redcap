@@ -87,7 +87,7 @@ class ExportForm(ValidatedInterface):
             args=("--no-survey-fields",),
             dest="survey_fields",
             action="store_false",
-            doc="Do not include survey identifier or survey timestamp fields",
+            doc="do not include survey identifier or survey timestamp fields",
         ),
         credential=Parameter(
             args=("--credential",),
@@ -209,6 +209,6 @@ class ExportForm(ValidatedInterface):
 def _write_commit_message(which_forms: List[str]) -> str:
     """Return a formatted commit message that includes form names"""
     forms = ", ".join(which_forms)
-    header = "Export RedCap forms"
+    header = "Export REDCap forms"
     body = "\n".join(textwrap.wrap(f"Contains the following forms: {forms}."))
     return header + "\n\n" + body

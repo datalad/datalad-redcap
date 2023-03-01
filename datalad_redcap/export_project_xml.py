@@ -125,14 +125,14 @@ class ExportProjectXML(ValidatedInterface):
         metadata_only=Parameter(
             args=("--metadata-only",),
             action="store_true",
-            doc="""Return only metadata (all fields, forms, events, and arms), 
-            do not include data""",
+            doc="""return only metadata (all fields, forms, events, and arms),
+            do not include data.""",
         ),
         survey_fields=Parameter(
             args=("--no-survey-fields",),
             dest="survey_fields",
             action="store_false",
-            doc="Do not include survey identifier or survey timestamp fields",
+            doc="do not include survey identifier or survey timestamp fields.",
         ),
         message=save_message_opt,
         save=nosave_opt,

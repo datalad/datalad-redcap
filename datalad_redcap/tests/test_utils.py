@@ -1,21 +1,16 @@
-from pathlib import Path
-
 from datalad.distribution.dataset import Dataset
-from datalad_next.tests.utils import with_tempfile
 
 from datalad_redcap.utils import check_ok_to_edit
 
 
-@with_tempfile
-def test_check_ok_to_edit(path=None):
+def test_check_ok_to_edit(tmp_path):
     """Tests whether location/state is correctly recognized"""
-    basedir = Path(path)
-    ds = Dataset(basedir / "ds").create(result_renderer="disabled")
+    ds = Dataset(tmp_path / "ds").create(result_renderer="disabled")
     subds = ds.create("subds", result_renderer="disabled")
 
-    outside = basedir / "file_outside"
-    inside = basedir / "ds" / "ds_file"
-    below = basedir / "ds" / "subds" / "subds_file"
+    outside = tmp_path / "file_outside"
+    inside = tmp_path / "ds" / "ds_file"
+    below = tmp_path / "ds" / "subds" / "subds_file"
 
     outside.write_text("dummy")
     inside.write_text("dummy")

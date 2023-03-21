@@ -10,7 +10,7 @@ lgr = logging.getLogger('datalad.redcap')
 # to be found by datalad
 command_suite = (
     # description of the command suite, displayed in cmdline help
-    "DataLad-Redcap command suite",
+    "DataLad-REDCap command suite",
     [
         # specification of a command, any number of commands can be defined
         (

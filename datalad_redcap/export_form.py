@@ -1,5 +1,6 @@
 """Export one or multiple forms"""
 
+from contextlib import contextmanager
 import logging
 from pathlib import Path
 import textwrap
@@ -8,6 +9,7 @@ from typing import (
     Optional,
 )
 
+from redcap import RedcapError
 from redcap.methods.records import Records
 
 from datalad.interface.common_opts import (
@@ -44,6 +46,33 @@ from .utils import (
 __docformat__ = "restructuredtext"
 lgr = logging.getLogger("datalad.redcap.export_form")
 
+
+@contextmanager
+def rcm(credman, credential, url):
+    """RedCap credential context manager
+
+    Reraises assertion & redcap errors, updates credential if things
+    go right.
+
+    """
+    credname, credprops = credman.obtain(
+        name=credential,
+        prompt="A token is required to access the REDCap project API",
+        type_hint="token",
+        query_props={"realm": url},
+        expected_props=("secret",),
+    )
+
+    try:
+        err = None
+        yield credprops
+    except AssertionError:
+        raise
+    except RedcapError:
+        raise
+    else:
+        # query went well, store or update credentials
+        update_credentials(credman, credname, credprops)
 
 @build_doc
 class ExportForm(ValidatedInterface):
@@ -153,23 +182,22 @@ class ExportForm(ValidatedInterface):
             expected_props=("secret",),
         )
 
-        # create an api object
-        api = Records(
-            url=url,
-            token=credprops["secret"],
-        )
+        with rcm(credman, credential, url) as credprops:
 
-        # perform the api query
-        # for csv format, outpus result as string
-        # raises RedcapError if token or form name are incorrect
-        response = api.export_records(
-            format_type="csv",
-            forms=forms,
-            export_survey_fields=survey_fields,
-        )
+            # create an api object
+            api = Records(
+                url=url,
+                token=credprops["secret"],
+            )
 
-        # query went well, store or update credentials
-        update_credentials(credman, credname, credprops)
+            # perform the api query
+            # for csv format, outpus result as string
+            # raises RedcapError if token or form name are incorrect
+            response = api.export_records(
+                format_type="csv",
+                forms=forms,
+                export_survey_fields=survey_fields,
+            )
 
         # unlock the file if needed, and write contents
         if unlock:

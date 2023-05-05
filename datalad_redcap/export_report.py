@@ -153,7 +153,9 @@ class ExportReport(ValidatedInterface):
 
         # unlock the file if needed, and write contents
         if unlock:
-            ds.unlock(outfile)
+            yield from ds.unlock(
+                outfile, result_renderer="disabled", return_type="generator"
+            )
         with open(outfile, "wt") as f:
             f.write(response)
 

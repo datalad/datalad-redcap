@@ -3,10 +3,6 @@ from typing import Optional
 
 from redcap.methods.project_info import ProjectInfo
 
-from datalad.distribution.dataset import (
-    require_dataset,
-    resolve_path,
-)
 from datalad.interface.common_opts import (
     nosave_opt,
     save_message_opt,
@@ -142,13 +138,15 @@ class ExportProjectXML(ValidatedInterface):
         dict(
             url=EnsureURL(required=["scheme", "netloc", "path"]),
             outfile=EnsurePath(),
-            dataset=EnsureDataset(installed=True, purpose="export redcap report"),
+            dataset=EnsureDataset(installed=True, purpose="export REDCap project XML"),
             credential=EnsureStr(),
             metadata_only=EnsureBool(),
             survey_fields=EnsureBool(),
             message=EnsureStr(),
             save=EnsureBool(),
         ),
+        validate_defaults=("dataset",),
+        tailor_for_dataset=({"outfile": "dataset"}),
     )
 
     @staticmethod
@@ -165,22 +163,14 @@ class ExportProjectXML(ValidatedInterface):
         save: bool = True,
     ):
 
-        # work with a dataset object
-        if dataset is None:
-            # https://github.com/datalad/datalad-next/issues/225
-            ds = require_dataset(None)
-        else:
-            ds = dataset.ds
-
-        # sort out the path in context of the dataset
-        res_outfile = resolve_path(outfile, ds=ds)
+        ds = dataset.ds
 
         # refuse to operate if target file is outside the dataset or not clean
-        ok_to_edit, unlock = check_ok_to_edit(res_outfile, ds)
+        ok_to_edit, unlock = check_ok_to_edit(outfile, ds)
         if not ok_to_edit:
             yield get_status_dict(
                 action="export_redcap_report",
-                path=res_outfile,
+                path=outfile,
                 status="error",
                 message=(
                     "Output file status is not clean or the file does not "
@@ -217,8 +207,10 @@ class ExportProjectXML(ValidatedInterface):
 
         # unlock the file if needed, and write contents
         if unlock:
-            ds.unlock(res_outfile)
-        with open(res_outfile, "wt") as f:
+            yield from ds.unlock(
+                outfile, result_renderer="disabled", return_type="generator"
+            )
+        with open(outfile, "wt") as f:
             f.write(response)
 
         # save changes in the dataset
@@ -231,13 +223,13 @@ class ExportProjectXML(ValidatedInterface):
                     metadata_only=metadata_only,
                     survey_fields=survey_fields,
                 ),
-                path=res_outfile,
+                path=outfile,
             )
 
         # yield successful result if we made it to here
         yield get_status_dict(
             action="export_redcap_project_xml",
-            path=res_outfile,
+            path=outfile,
             status="ok",
         )
 

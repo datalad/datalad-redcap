@@ -6,16 +6,10 @@ import textwrap
 from typing import (
     List,
     Optional,
-    Tuple,
 )
 
 from redcap.methods.records import Records
 
-from datalad.distribution.dataset import (
-    Dataset,
-    require_dataset,
-    resolve_path,
-)
 from datalad.interface.common_opts import (
     nosave_opt,
     save_message_opt,
@@ -35,9 +29,9 @@ from datalad_next.constraints import (
     EnsurePath,
     EnsureStr,
     EnsureURL,
+    DatasetParameter,
 )
 from datalad_next.constraints.dataset import (
-    DatasetParameter,
     EnsureDataset,
 )
 from datalad_next.utils import CredentialManager
@@ -115,6 +109,8 @@ class ExportForm(ValidatedInterface):
             message=EnsureStr(),
             save=EnsureBool(),
         ),
+        validate_defaults=("dataset",),
+        tailor_for_dataset=({"outfile": "dataset"}),
     )
 
     @staticmethod
@@ -131,18 +127,10 @@ class ExportForm(ValidatedInterface):
         save: bool = True,
     ):
 
-        # work with a dataset object
-        if dataset is None:
-            # https://github.com/datalad/datalad-next/issues/225
-            ds = require_dataset(None)
-        else:
-            ds = dataset.ds
-
-        # Sort out the path in context of the dataset
-        res_outfile = resolve_path(outfile, ds=ds)
+        ds = dataset.ds
 
         # refuse to operate if target file is outside the dataset or not clean
-        ok_to_edit, unlock = check_ok_to_edit(res_outfile, ds)
+        ok_to_edit, unlock = check_ok_to_edit(outfile, ds)
         if not ok_to_edit:
             yield get_status_dict(
                 action="export_redcap_form",
@@ -185,8 +173,10 @@ class ExportForm(ValidatedInterface):
 
         # unlock the file if needed, and write contents
         if unlock:
-            ds.unlock(res_outfile)
-        with open(res_outfile, "wt") as f:
+            yield from ds.unlock(
+                outfile, result_renderer="disabled", return_type="generator"
+            )
+        with open(outfile, "wt") as f:
             f.write(response)
 
         # save changes in the dataset
@@ -195,7 +185,7 @@ class ExportForm(ValidatedInterface):
                 message=message
                 if message is not None
                 else _write_commit_message(forms),
-                path=res_outfile,
+                path=outfile,
             )
 
         # yield successful result if we made it to here

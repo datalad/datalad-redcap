@@ -13,6 +13,7 @@ from unittest.mock import patch
 from datalad.api import export_redcap_form
 from datalad.distribution.dataset import Dataset
 
+from datalad_next.constraints import ConstraintError
 from datalad_next.utils import chpwd
 
 CSV_CONTENT = "foo,bar,baz\nspam,spam,spam"
@@ -24,7 +25,7 @@ def test_url_rejected(tmp_path, credman_filled, api_url):
     credname, _ = credman_filled.query(realm=api_url)[0]
     ds = Dataset(tmp_path).create(result_renderer="disabled")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ConstraintError):
         with patch(
             "datalad_redcap.export_form.Records.export_records",
             return_value=CSV_CONTENT,
@@ -42,7 +43,7 @@ def test_dataset_not_found(tmp_path, credman_filled, api_url):
     """Test that nonexistent dataset is rejected by validation"""
 
     # explicit path that isn't a dataset
-    with pytest.raises(ValueError):
+    with pytest.raises(ConstraintError):
         with patch(
             "datalad_redcap.export_form.Records.export_records",
             return_value=CSV_CONTENT,
@@ -56,7 +57,7 @@ def test_dataset_not_found(tmp_path, credman_filled, api_url):
 
     # no path given, pwd is not a dataset
     with chpwd(tmp_path, mkdir=True):
-        with pytest.raises(ValueError):
+        with pytest.raises(ConstraintError):
             with patch(
                 "datalad_redcap.export_form.Records.export_records",
                 return_value=CSV_CONTENT,

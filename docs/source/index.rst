@@ -17,57 +17,15 @@ GitHub::
   # install from GitHub main branch
   $ python -m pip install git+https://github.com/datalad/datalad-redcap.git@main
 
-
-API
-===
-
-High-level API commands
------------------------
-
-.. currentmodule:: datalad.api
-.. autosummary::
-   :toctree: generated
-
-   export_redcap_form
-   export_redcap_project_xml
-   export_redcap_report
-   redcap_query
-
-
-Command line reference
-----------------------
+Index
+=====
 
 .. toctree::
    :maxdepth: 1
 
-   generated/man/datalad-export-redcap-form
-   generated/man/datalad-export-redcap-project-xml
-   generated/man/datalad-export-redcap-report
-   generated/man/datalad-redcap-query.rst
-
-
-User guide
-==========
-
-.. toctree::
-   :maxdepth: 1
-
+   command_line_reference
+   python_module_reference
    user_guide
-
-Design
-======
-
-.. toctree::
-   :maxdepth: 1
-
    design_docs
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 
 .. |---| unicode:: U+02014 .. em dash

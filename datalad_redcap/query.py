@@ -58,12 +58,16 @@ class MyInstruments(Instruments):
 class Query(ValidatedInterface):
     """Query REDCap's API for available instruments (data entry forms)
 
-    Can be used to retrieve human-oriented labels and API-oriented names of
-    instruments (data entry forms) which can be exported from the project.
-    [PY: Returns a result record dictionary res in which "instruments" key
-    contains a list where each instrument is represented as a dictionary with
-    "instrument name" and "instrument_label" keys.][CMD: Displays a table with
-    results].
+    Can be used to retrieve human-oriented labels and API-oriented
+    names of instruments (data entry forms) which can be exported from
+    the project.
+
+    [PY: Returns a result record dictionary, in which ``instruments``
+    is a list of dictionaries, with ``instrument_name`` and
+    ``instrument_label`` keys. PY]
+
+    [CMD: Displays a table with results. CMD]
+
     """
 
     result_renderer = "tailored"

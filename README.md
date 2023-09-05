@@ -38,3 +38,9 @@ cd my-exports
 datalad redcap-query <api url>
 datalad export-redcap-form <api url> <form name> exported.csv
 ```
+
+## Acknowledgements
+
+This DataLad extension was developed with support from the Deutsche
+Forschungsgemeinschaft (DFG, German Research Foundation) under grant SFB 1451
+([431549029](https://gepris.dfg.de/gepris/projekt/431549029), INF project).

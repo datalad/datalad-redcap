@@ -1,0 +1,23 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: datalad-redcap
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Michael
+    family-names: Hanke
+  - given-names: Michał
+    family-names: Szczepanik
+repository-code: 'https://github.com/datalad/datalad-redcap'
+url: >-
+  https://docs.datalad.org/projects/redcap/en/latest/?badge=latest
+abstract: >-
+  This DataLad extension provides convenience commands for
+  exporting data from REDCap into DataLad datasets.
+  Information about the RedCAP project can be found at
+  https://project-redcap.org/.
+license: MIT

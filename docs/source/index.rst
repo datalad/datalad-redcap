@@ -28,4 +28,12 @@ Index
    user_guide
    design_docs
 
+Acknowledgements
+================
+
+This DataLad extension was developed with funding from the Deutsche
+Forschungsgemeinschaft (DFG, German Research Foundation) under grant
+SFB 1451 (`431549029 <https://gepris.dfg.de/gepris/projekt/431549029>`_,
+INF project).
+
 .. |---| unicode:: U+02014 .. em dash

@@ -160,7 +160,7 @@ class ExportForm(ValidatedInterface):
         )
 
         # perform the api query
-        # for csv format, outpus result as string
+        # for csv format, outputs result as string
         # raises RedcapError if token or form name are incorrect
         response = api.export_records(
             format_type="csv",

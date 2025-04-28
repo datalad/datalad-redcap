@@ -105,7 +105,7 @@ be prompted to save and name the credential (with ``redcap-<api url>``
 being the default).
 
 When you connect to the same REDCap instance again, DataLad will use,
-by default, the last credential successfuly used for that API URL.
+by default, the last credential successfully used for that API URL.
 
 If you have access to multiple projects on the same instance, you can
 create differently named credentials and use the ``--credential``

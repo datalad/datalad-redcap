@@ -8,7 +8,7 @@ project can be found at https://project-redcap.org/.
 Installation
 ============
 
-The extension is in early development. It can be installed from
+The extension is a working prototype. It can be installed from
 GitHub::
 
   # create and enter a new virtual environment (optional)

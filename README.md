@@ -8,7 +8,7 @@
 This DataLad extension provides convenience commands for exporting data from REDCap into DataLad datasets.
 Information about the RedCAP project can be found at https://project-redcap.org/.
 
-The extension is in early development.
+The extension is a working prototype.
 
 ## Installation
 The extension has no official release yet, but you can install the *bleeding edge* version using pip, directly from GitHub.
